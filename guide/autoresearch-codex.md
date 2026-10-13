@@ -7,7 +7,7 @@ Codex distribution of autoresearch. Same 14 commands, same flags, same output co
 ## Install
 
 ```bash
-git clone https://github.com/uditgoenka/autoresearch.git
+git clone https://github.com/philipk19238/autoresearch.git
 cd autoresearch
 ./scripts/install.sh --codex --global
 ```

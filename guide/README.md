@@ -2,9 +2,9 @@
 
 # Autoresearch Guides
 
-**By [Udit Goenka](https://udit.co)**
+**By [Philip Kung](https://github.com/philipk19238)**, built on [Udit Goenka's autoresearch](https://github.com/uditgoenka/autoresearch)
 
-[![Version](https://img.shields.io/badge/version-2.2.2-blue.svg)](https://github.com/uditgoenka/autoresearch/releases)
+[![Version](https://img.shields.io/badge/version-2.2.2-blue.svg)](https://github.com/philipk19238/autoresearch/releases)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](../LICENSE)
 
 </div>
@@ -18,7 +18,7 @@ Everything you need to master autonomous iteration — from first run to advance
 ## Quick Start
 
 ```bash
-npx skills add uditgoenka/autoresearch
+npx skills add philipk19238/autoresearch
 /autoresearch
 ```
 
@@ -83,6 +83,6 @@ npx skills add uditgoenka/autoresearch
 
 <div align="center">
 
-**Built by [Udit Goenka](https://udit.co)** | [GitHub](https://github.com/uditgoenka/autoresearch) | [Follow @iuditg](https://x.com/iuditg)
+**Maintained by [Philip Kung](https://github.com/philipk19238)** | [GitHub](https://github.com/philipk19238/autoresearch) | Based on [Udit Goenka's autoresearch](https://github.com/uditgoenka/autoresearch)
 
 </div>

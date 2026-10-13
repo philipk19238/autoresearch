@@ -21,7 +21,7 @@ The preparation script stops after the PR is opened. It does not merge, tag, or 
 
 | Gate | Verified by |
 |------|-------------|
-| Identity and workspace | clean tree, `master`, `gh`, `uditgoenka` Git author, `uditgoenka` GitHub login |
+| Identity and workspace | clean tree, `master`, `gh`, `Philip Kung` Git author, `philipk19238` GitHub login |
 | Transform cleanliness | `bash scripts/transform.sh`, then `git diff --exit-code` and `git status --porcelain` |
 | Version alignment | `claude-plugin/.claude-plugin/plugin.json`, `.claude-plugin/marketplace.json`, `.claude/skills/autoresearch/SKILL.md`, `README.md`, `guide/README.md`, and the generated `SKILL.md` mirrors |
 | Release suites | `bash tests/test-hooks.sh`, `bash tests/test-orchestrator.sh`, `bash tests/test-regression.sh`, `bash tests/test-maintenance.sh` |
@@ -32,8 +32,8 @@ The preparation script stops after the PR is opened. It does not merge, tag, or 
 
 Before running the script, verify:
 
-- [ ] `git config user.name` is `uditgoenka`
-- [ ] `gh api user --jq .login` is `uditgoenka`
+- [ ] `git config user.name` is `Philip Kung`
+- [ ] `gh api user --jq .login` is `philipk19238`
 - [ ] The working tree is clean and on `master`
 - [ ] `scripts/orchestrate.sh` and `scripts/score-regression.sh` are executable in every installed bundle
 - [ ] `bash tests/test-hooks.sh`

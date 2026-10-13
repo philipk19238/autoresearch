@@ -14,7 +14,7 @@
 
 In March 2026, **[Andrej Karpathy](https://github.com/karpathy)** released [autoresearch](https://github.com/karpathy/autoresearch) — a 630-line Python script that let AI agents autonomously optimize a GPT language model overnight. In 2 days, a single agent ran **700 experiments**, discovered **20 optimizations**, and achieved an **11% speedup** on already-optimized code. The repo hit 26,000 GitHub stars in under a week.
 
-**[Claude Autoresearch](https://github.com/uditgoenka/autoresearch)** by **[Udit Goenka](https://udit.co)** takes Karpathy's core principles — constraint, mechanical metric, autonomous iteration — and generalizes them into a **Claude Code skill system** with 14 commands that work on **any domain**: code, content, marketing, sales, security, DevOps, HR, or anything with a measurable number.
+**[Claude Autoresearch](https://github.com/philipk19238/autoresearch)** by **[Philip Kung](https://github.com/philipk19238)**, a fork of [Udit Goenka's original](https://github.com/uditgoenka/autoresearch), takes Karpathy's core principles — constraint, mechanical metric, autonomous iteration — and generalizes them into a **Claude Code skill system** with 14 commands that work on **any domain**: code, content, marketing, sales, security, DevOps, HR, or anything with a measurable number.
 
 The philosophy is the same. The scope is radically different.
 
@@ -25,7 +25,7 @@ The philosophy is the same. The scope is radically different.
 | | **Karpathy's Autoresearch** | **Claude Autoresearch** |
 |---|---|---|
 | **What it is** | Python script for autonomous ML training optimization | Claude Code skill for autonomous improvement of anything measurable |
-| **Created by** | Andrej Karpathy (ex-Tesla AI, OpenAI) | Udit Goenka (AI Product Expert, Founder) |
+| **Created by** | Andrej Karpathy (ex-Tesla AI, OpenAI) | Udit Goenka (original); fork-and-flush by Philip Kung |
 | **Released** | March 2026 | March 2026 |
 | **Language** | Python (PyTorch) | Markdown (Claude Code skill system) |
 | **LOC** | ~630 (train.py) | ~1,750 across 14 self-contained command files + routing table |
@@ -219,7 +219,7 @@ uv run train.py
 
 ```bash
 # 1. Install (one command in Claude Code)
-/plugin marketplace add uditgoenka/autoresearch
+/plugin marketplace add philipk19238/autoresearch
 /plugin install autoresearch@autoresearch
 
 # 2. Run (Claude asks you what you need)
@@ -360,7 +360,7 @@ autoresearch/
 | **GPU required** | ✅ Yes (CUDA 12.8+) | ❌ No |
 | **Programming languages** | Python only | Any language (TypeScript, Python, Go, Rust, Java, Ruby, etc.) |
 | **Dependencies** | PyTorch 2.9.1, CUDA, numpy, tqdm | Claude Code only |
-| **Installation** | git clone + uv sync + data prep | `/plugin marketplace add uditgoenka/autoresearch` |
+| **Installation** | git clone + uv sync + data prep | `/plugin marketplace add philipk19238/autoresearch` |
 | **Cost model** | GPU compute ($2-5/hour for H100) | Claude API tokens |
 | **Offline capable** | ✅ Yes (after data prep) | ❌ Requires Claude API |
 | **CI/CD integration** | ❌ Not designed for CI | ✅ GitHub Actions, GitLab CI, pre-commit hooks |
@@ -530,6 +530,6 @@ Same philosophy. Same loop. Radically different scope.
 
 <div align="center">
 
-**[Claude Autoresearch](https://github.com/uditgoenka/autoresearch)** | **[Karpathy's Autoresearch](https://github.com/karpathy/autoresearch)** | **[Guide](guide/)** | **[Examples](guide/examples-by-domain.md)**
+**[Claude Autoresearch](https://github.com/philipk19238/autoresearch)** | **[Karpathy's Autoresearch](https://github.com/karpathy/autoresearch)** | **[Guide](guide/)** | **[Examples](guide/examples-by-domain.md)**
 
 </div>

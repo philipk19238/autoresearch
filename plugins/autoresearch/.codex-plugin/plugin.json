@@ -3,11 +3,11 @@
   "version": "2.2.2-codex.0",
   "description": "Autonomous improvement engine for Codex. 14 commands: iterate, plan, debug, fix, security, ship, scenario, predict, learn, reason, probe, evals, improve, regression.",
   "author": {
-    "name": "Udit Goenka",
-    "url": "https://github.com/uditgoenka"
+    "name": "Philip Kung",
+    "url": "https://github.com/philipk19238"
   },
-  "homepage": "https://github.com/uditgoenka/autoresearch",
-  "repository": "https://github.com/uditgoenka/autoresearch",
+  "homepage": "https://github.com/philipk19238/autoresearch",
+  "repository": "https://github.com/philipk19238/autoresearch",
   "license": "MIT",
   "keywords": [
     "autoresearch",
@@ -23,15 +23,15 @@
     "displayName": "Autoresearch",
     "shortDescription": "Autonomous improvement workflows for Codex.",
     "longDescription": "14 self-contained commands: core iterate loop, plan, debug, fix, security, ship, scenario, predict, learn, reason, probe, evals, improve, regression. Thin routing SKILL.md + per-command instruction files.",
-    "developerName": "Udit Goenka",
+    "developerName": "Philip Kung",
     "category": "Productivity",
     "capabilities": [
       "Interactive",
       "Write"
     ],
-    "websiteURL": "https://github.com/uditgoenka/autoresearch",
-    "privacyPolicyURL": "https://github.com/uditgoenka/autoresearch/blob/main/LICENSE",
-    "termsOfServiceURL": "https://github.com/uditgoenka/autoresearch/blob/main/LICENSE",
+    "websiteURL": "https://github.com/philipk19238/autoresearch",
+    "privacyPolicyURL": "https://github.com/philipk19238/autoresearch/blob/master/LICENSE",
+    "termsOfServiceURL": "https://github.com/philipk19238/autoresearch/blob/master/LICENSE",
     "defaultPrompt": [
       "$autoresearch plan Improve test coverage to 90%",
       "$autoresearch security --diff --fail-on critical",

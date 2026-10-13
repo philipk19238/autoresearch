@@ -15,7 +15,7 @@ Autonomous goal-directed iteration based on [Karpathy's autoresearch](https://gi
 ### Claude Code (plugin)
 
 ```
-/plugin marketplace add uditgoenka/autoresearch
+/plugin marketplace add philipk19238/autoresearch
 /plugin install autoresearch@autoresearch
 ```
 
@@ -24,7 +24,7 @@ Restart session after install. All 14 commands become available as `/autoresearc
 ### Codex (plugin)
 
 ```bash
-git clone https://github.com/uditgoenka/autoresearch.git
+git clone https://github.com/philipk19238/autoresearch.git
 cd autoresearch
 ./scripts/install.sh --codex --global
 ```
@@ -36,7 +36,7 @@ Invoke via the `$autoresearch` mention syntax: `$autoresearch <subcommand> [flag
 Copy the skill files into your agent's skill directory:
 
 ```bash
-git clone https://github.com/uditgoenka/autoresearch.git
+git clone https://github.com/philipk19238/autoresearch.git
 
 # Claude Code
 cp -r autoresearch/claude-plugin/skills/autoresearch .claude/skills/autoresearch

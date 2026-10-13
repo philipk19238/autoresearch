@@ -20,7 +20,8 @@ done
 
 TAG="v$VERSION"
 BRANCH="release/$VERSION"
-OWNER="uditgoenka"
+OWNER="philipk19238"
+AUTHOR="Philip Kung"
 
 die() { printf 'Error: %s\n' "$1" >&2; exit 1; }
 replace_line() {
@@ -33,7 +34,7 @@ replace_line() {
 command -v gh >/dev/null 2>&1 || die "gh CLI not found"
 [[ -z "$(git status --porcelain)" ]] || die "working tree is dirty"
 [[ "$(git branch --show-current)" == master ]] || die "must run from master"
-[[ "$(git config user.name)" == "$OWNER" ]] || die "Git author must be $OWNER"
+[[ "$(git config user.name)" == "$AUTHOR" ]] || die "Git author must be $AUTHOR"
 
 REMOTE_URL="$(git remote get-url origin)"
 case "$REMOTE_URL" in
@@ -109,7 +110,7 @@ done
 git add -A
 git commit -m "chore(release): prepare $TAG for explicit publication" \
   -m "Release preparation aligns versions, regenerates every distribution, and records a green local release gate. Merge, tag creation, and publication remain separate owner actions." \
-  -m "Constraint: All release artifacts must be created by uditgoenka" \
+  -m "Constraint: All release artifacts must be created by philipk19238" \
   -m "Confidence: high" \
   -m "Scope-risk: moderate" \
   -m "Directive: Do not merge, tag, or publish from release preparation automation" \

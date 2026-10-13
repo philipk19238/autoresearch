@@ -8,7 +8,7 @@ Autoresearch is Markdown files that Claude Code, OpenCode, and Codex discover fr
 
 ```bash
 # 1. Clone the repo
-git clone https://github.com/uditgoenka/autoresearch.git
+git clone https://github.com/philipk19238/autoresearch.git
 cd autoresearch
 
 # 2. Install via guided installer
@@ -167,9 +167,9 @@ Contributors don't need to bump versions.
 
 ## Getting Help
 
-- **Questions?** Open an [issue](https://github.com/uditgoenka/autoresearch/issues)
+- **Questions?** Open an [issue](https://github.com/philipk19238/autoresearch/issues)
 - **Ideas?** Open an issue with `[Idea]` prefix
-- **Discussion?** Tag [@uditgoenka](https://github.com/uditgoenka) in your PR
+- **Discussion?** Tag [@philipk19238](https://github.com/philipk19238) in your PR
 
 Thanks for contributing!
 

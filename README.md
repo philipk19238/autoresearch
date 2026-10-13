@@ -9,12 +9,11 @@ Based on [Karpathy's autoresearch](https://github.com/karpathy/autoresearch) —
 [![Claude Code Skill](https://img.shields.io/badge/Claude_Code-Skill-blue?logo=anthropic&logoColor=white)](https://docs.anthropic.com/en/docs/claude-code)
 [![OpenCode](https://img.shields.io/badge/OpenCode-Skill-purple)](https://opencode.ai)
 [![Codex](https://img.shields.io/badge/Codex-Skill-green?logo=openai&logoColor=white)](https://developers.openai.com/codex)
-[![Version](https://img.shields.io/badge/version-2.2.2-blue.svg)](https://github.com/uditgoenka/autoresearch/releases)
+[![Version](https://img.shields.io/badge/version-2.2.2-blue.svg)](https://github.com/philipk19238/autoresearch/releases)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
 [![Based on](https://img.shields.io/badge/Based_on-Karpathy's_Autoresearch-orange)](https://github.com/karpathy/autoresearch)
-[![Follow @iuditg](https://img.shields.io/badge/Follow-@iuditg-000000?style=flat&logo=x&logoColor=white)](https://x.com/intent/follow?screen_name=iuditg)
-[![Support](https://img.shields.io/badge/Support-PayPal-00457C?style=flat&logo=paypal&logoColor=white)](https://paypal.me/uditgoenka)
+[![Fork-and-Flush](https://img.shields.io/badge/Fork--and--Flush-arXiv:2610.07447-b31b1b)](https://arxiv.org/abs/2610.07447)
 
 <br>
 
@@ -24,7 +23,7 @@ Based on [Karpathy's autoresearch](https://github.com/karpathy/autoresearch) —
 
 **Supports Claude Code, OpenCode, and OpenAI Codex for the core skill, bundled runtime, installation, and verification surface. Hook guardrails are Claude Code-only.**
 
-> **This fork adds fork-and-flush.** A fork of [uditgoenka/autoresearch](https://github.com/uditgoenka/autoresearch) by Udit Goenka. Metric loops now escape plateaus the way [Cai et al. (arXiv:2610.07447)](https://arxiv.org/abs/2610.07447) do: at 33% and 66% of the budget, or after 5 iterations with no `keep`, the loop forks fresh-context branches from the best commit so far, runs each briefly, and keeps the winner. The orchestrator answers a plateau with `FORK` before it gives up. See [guide/autoresearch.md](guide/autoresearch.md#getting-unstuck-fork-and-flush). Install from this fork with `/plugin marketplace add philipk19238/autoresearch`.
+> **Fork-and-flush:** metric loops escape plateaus the way [Cai et al. (arXiv:2610.07447)](https://arxiv.org/abs/2610.07447) do. At 33% and 66% of the budget, or after 5 iterations with no `keep`, the loop forks fresh-context branches from the best commit so far, runs each briefly, and keeps the winner. The orchestrator answers a plateau with `FORK` before it gives up. See [guide/autoresearch.md](guide/autoresearch.md#getting-unstuck-fork-and-flush). Built on [Udit Goenka's autoresearch](https://github.com/uditgoenka/autoresearch).
 
 > **v2.2.0 — Autonomous Orchestrator:** Type a plain-language goal to `/autoresearch` and it classifies your goal, derives a Success predicate, confirms it once, then loops across subcommands until done. No manual chaining required. `Metric:`/`Verify:` invocations run the classic loop unchanged. See [guide/autoresearch-orchestrator.md](guide/autoresearch-orchestrator.md).
 
@@ -228,7 +227,7 @@ Release preparation and contributor verification live in [scripts/release.md](sc
 **Option A — npx install (recommended):**
 
 ```bash
-npx skills add uditgoenka/autoresearch
+npx skills add philipk19238/autoresearch
 ```
 
 All 14 commands are available after restarting Claude Code.
@@ -236,7 +235,7 @@ All 14 commands are available after restarting Claude Code.
 **Option B — Plugin install:**
 
 ```
-/plugin marketplace add uditgoenka/autoresearch
+/plugin marketplace add philipk19238/autoresearch
 /plugin install autoresearch@autoresearch
 ```
 
@@ -251,7 +250,7 @@ Run `/reload-plugins` to activate. No need to uninstall or re-clone.
 
 **Option C — Manual copy:**
 ```bash
-git clone https://github.com/uditgoenka/autoresearch.git
+git clone https://github.com/philipk19238/autoresearch.git
 
 # Copy skill + subcommands to your project
 cp -r autoresearch/.claude/skills/autoresearch .claude/skills/autoresearch
@@ -268,7 +267,7 @@ cp autoresearch/.claude/commands/autoresearch.md ~/.claude/commands/autoresearch
 
 **Option D — Guided installer:**
 ```bash
-git clone https://github.com/uditgoenka/autoresearch.git
+git clone https://github.com/philipk19238/autoresearch.git
 cd autoresearch
 ./scripts/install.sh --claude --global
 ```
@@ -277,14 +276,14 @@ cd autoresearch
 
 **Option A — Guided installer (recommended):**
 ```bash
-git clone https://github.com/uditgoenka/autoresearch.git
+git clone https://github.com/philipk19238/autoresearch.git
 cd autoresearch
 ./scripts/install.sh --opencode --global
 ```
 
 **Option B — Manual copy:**
 ```bash
-git clone https://github.com/uditgoenka/autoresearch.git
+git clone https://github.com/philipk19238/autoresearch.git
 
 cp -r autoresearch/.opencode/skills/autoresearch .opencode/skills/autoresearch
 cp autoresearch/.opencode/commands/autoresearch*.md .opencode/commands/
@@ -302,14 +301,14 @@ cp autoresearch/.opencode/commands/autoresearch*.md ~/.config/opencode/commands/
 
 **Option A — Guided installer (recommended):**
 ```bash
-git clone https://github.com/uditgoenka/autoresearch.git
+git clone https://github.com/philipk19238/autoresearch.git
 cd autoresearch
 ./scripts/install.sh --codex --global
 ```
 
 **Option B — Manual copy:**
 ```bash
-git clone https://github.com/uditgoenka/autoresearch.git
+git clone https://github.com/philipk19238/autoresearch.git
 cp -r autoresearch/.agents/skills/autoresearch ~/.codex/skills/autoresearch
 ```
 
@@ -760,11 +759,11 @@ Areas of interest: new domain examples, verification script templates, CI/CD int
 
 ## Star History
 
-<a href="https://www.star-history.com/?repos=uditgoenka%2Fautoresearch&type=timeline&legend=top-left">
+<a href="https://www.star-history.com/?repos=philipk19238%2Fautoresearch&type=timeline&legend=top-left">
  <picture>
-   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/image?repos=uditgoenka/autoresearch&type=timeline&theme=dark&legend=bottom-right&v=20260319" />
-   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/image?repos=uditgoenka/autoresearch&type=timeline&legend=bottom-right&v=20260319" />
-   <img alt="Star History Chart" src="https://api.star-history.com/image?repos=uditgoenka/autoresearch&type=timeline&legend=bottom-right&v=20260319" />
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/image?repos=philipk19238/autoresearch&type=timeline&theme=dark&legend=bottom-right&v=20260319" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/image?repos=philipk19238/autoresearch&type=timeline&legend=bottom-right&v=20260319" />
+   <img alt="Star History Chart" src="https://api.star-history.com/image?repos=philipk19238/autoresearch&type=timeline&legend=bottom-right&v=20260319" />
  </picture>
 </a>
 
@@ -779,7 +778,7 @@ MIT — see [LICENSE](LICENSE).
 ## Credits
 
 - **[Andrej Karpathy](https://github.com/karpathy)** — for [autoresearch](https://github.com/karpathy/autoresearch)
-- **[Udit Goenka](https://github.com/uditgoenka)** — for [the autoresearch skill](https://github.com/uditgoenka/autoresearch) this fork builds on
+- **[Udit Goenka](https://github.com/uditgoenka)** — for [the original autoresearch skill](https://github.com/uditgoenka/autoresearch) this fork builds on
 - **Cai, Ziakas, Kontonis, Pearce, Sen, Krishnamurthy, Garg, Papailiopoulos** — for [Fork-and-Flush](https://arxiv.org/abs/2610.07447)
 - **[Anthropic](https://anthropic.com)** — for [Claude Code](https://docs.anthropic.com/en/docs/claude-code) and the skills system
 - **[OpenCode](https://opencode.ai)** — for the OpenCode terminal agent
@@ -787,24 +786,6 @@ MIT — see [LICENSE](LICENSE).
 
 ---
 
-<div align="center">
+## Maintainer
 
-## About the Author
-
-<a href="https://udit.co">
-  <img src="https://avatars.githubusercontent.com/uditgoenka" width="80" style="border-radius: 50%;" alt="Udit Goenka" />
-</a>
-
-**[Udit Goenka](https://udit.co)** — AI Product Expert, Founder & Angel Investor
-
-Self-taught builder who went from a slow internet connection in India to founding multiple companies and helping 700+ startups generate over ~$25m in revenue.
-
-**Building:** [TinyCheque](https://tinycheque.com) (India's first agentic AI venture studio) · [Firstsales.io](https://firstsales.io) (sales automation)
-
-**Investing:** 38 startups backed, 6 exits. Focused on early-stage AI and SaaS.
-
-**Connect:** [udit.co](https://udit.co) · [@iuditg](https://x.com/iuditg) · [@uditgoenka](https://github.com/uditgoenka) · [Newsletter](https://udit.co/blog)
-
-> *"Autonomy scales when you constrain scope, clarify success, mechanize verification, and let agents optimize tactics while humans optimize strategy."*
-
-</div>
+**[Philip Kung](https://github.com/philipk19238)** maintains this fork. It is built on [Udit Goenka's autoresearch](https://github.com/uditgoenka/autoresearch) and adds fork-and-flush rounds from [Cai et al. (arXiv:2610.07447)](https://arxiv.org/abs/2610.07447). Issues and pull requests go to [philipk19238/autoresearch](https://github.com/philipk19238/autoresearch/issues).

@@ -1,6 +1,6 @@
 # Getting Started with Autoresearch
 
-**By [Udit Goenka](https://udit.co)**
+**By [Philip Kung](https://github.com/philipk19238)**, built on [Udit Goenka's autoresearch](https://github.com/uditgoenka/autoresearch)
 
 Autoresearch turns [Claude Code](https://docs.anthropic.com/en/docs/claude-code), [OpenCode](https://opencode.ai), or [OpenAI Codex](https://developers.openai.com/codex) into an autonomous improvement engine. Based on [Karpathy's autoresearch](https://github.com/karpathy/autoresearch):
 
@@ -17,7 +17,7 @@ Works on anything with a measurable outcome — code coverage, bundle size, API 
 ### Claude Code (Recommended)
 
 ```bash
-npx skills add uditgoenka/autoresearch
+npx skills add philipk19238/autoresearch
 ```
 
 Start a new Claude Code session after installation so every command and reference resolves from the installed package.
@@ -25,7 +25,7 @@ Start a new Claude Code session after installation so every command and referenc
 ### Manual — Project-Level
 
 ```bash
-git clone https://github.com/uditgoenka/autoresearch.git
+git clone https://github.com/philipk19238/autoresearch.git
 cp -r autoresearch/.claude/skills/autoresearch .claude/skills/autoresearch
 cp -r autoresearch/.claude/commands/autoresearch .claude/commands/autoresearch
 ```
@@ -33,7 +33,7 @@ cp -r autoresearch/.claude/commands/autoresearch .claude/commands/autoresearch
 ### Manual — Global
 
 ```bash
-git clone https://github.com/uditgoenka/autoresearch.git
+git clone https://github.com/philipk19238/autoresearch.git
 cp -r autoresearch/.claude/skills/autoresearch ~/.claude/skills/autoresearch
 cp -r autoresearch/.claude/commands/autoresearch ~/.claude/commands/autoresearch
 ```
@@ -41,7 +41,7 @@ cp -r autoresearch/.claude/commands/autoresearch ~/.claude/commands/autoresearch
 ### OpenCode
 
 ```bash
-git clone https://github.com/uditgoenka/autoresearch.git
+git clone https://github.com/philipk19238/autoresearch.git
 cd autoresearch
 ./scripts/install.sh --opencode --global
 ```
@@ -51,7 +51,7 @@ cd autoresearch
 ### Codex
 
 ```bash
-git clone https://github.com/uditgoenka/autoresearch.git
+git clone https://github.com/philipk19238/autoresearch.git
 cd autoresearch
 ./scripts/install.sh --codex --global
 ```
@@ -251,7 +251,7 @@ No. Read-only by default. Use `--fix` to opt into auto-remediation.
 
 <div align="center">
 
-**Built by [Udit Goenka](https://udit.co)** | [GitHub](https://github.com/uditgoenka/autoresearch) | [Follow @iuditg](https://x.com/iuditg)
+**Maintained by [Philip Kung](https://github.com/philipk19238)** | [GitHub](https://github.com/philipk19238/autoresearch) | Based on [Udit Goenka's autoresearch](https://github.com/uditgoenka/autoresearch)
 
 *"Set the GOAL → Claude runs the LOOP → You wake up to results"*
 

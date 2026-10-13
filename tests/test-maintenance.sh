@@ -83,8 +83,8 @@ printf 'git %s\n' "$*" >> "$FAKE_CALL_LOG"
 case "$1 $2" in
   "status --porcelain") exit 0 ;;
   "branch --show-current") echo master ;;
-  "config user.name") echo "${FAKE_GIT_USER:-uditgoenka}" ;;
-  "remote get-url") echo "https://github.com/${FAKE_REMOTE_OWNER:-uditgoenka}/autoresearch.git" ;;
+  "config user.name") echo "${FAKE_GIT_USER:-Philip Kung}" ;;
+  "remote get-url") echo "https://github.com/${FAKE_REMOTE_OWNER:-philipk19238}/autoresearch.git" ;;
   "tag -l") exit 0 ;;
   "ls-remote --tags") exit 0 ;;
   "describe --tags") echo v2.2.1 ;;
@@ -98,8 +98,8 @@ EOF
   cat > "$bin/gh" <<'EOF'
 #!/bin/bash
 printf 'gh %s\n' "$*" >> "$FAKE_CALL_LOG"
-if [[ "$1 $2" == "api user" ]]; then echo "${FAKE_GH_USER:-uditgoenka}"; exit 0; fi
-if [[ "$1 $2" == "pr create" ]]; then echo 'https://github.com/uditgoenka/autoresearch/pull/999'; exit 0; fi
+if [[ "$1 $2" == "api user" ]]; then echo "${FAKE_GH_USER:-philipk19238}"; exit 0; fi
+if [[ "$1 $2" == "pr create" ]]; then echo 'https://github.com/philipk19238/autoresearch/pull/999'; exit 0; fi
 exit 0
 EOF
   cat > "$bin/bash" <<'EOF'
