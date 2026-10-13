@@ -21,6 +21,7 @@ Extract from $ARGUMENTS:
 - `--chain <targets>` — comma-separated downstream commands
 - `--no-fork` — disable fork-and-flush rounds
 - `Forks: K` — branches per fork-and-flush round (default 4)
+- `Guided: R` — fraction of each round's branches that get an Advisor-assigned experiment (default 0.5); the rest are random
 
 ## Setup (if required context missing)
 
@@ -91,7 +92,8 @@ Append row to TSV: iteration, timestamp, commit/-, metric, delta, guard status, 
 Unless `--no-fork`: when the iteration count reaches a scheduled round (33% and 66% of N; 50% when N < 12;
 every 20 when unbounded), or the last 5 iterations produced no `keep`, run one fork-and-flush round from the
 incumbent before the next iteration. Follow `references/fork-and-flush.md`. An early round replaces the next
-scheduled one.
+scheduled one. Of the K branches, `floor(K × R)` are guided (a stateless Advisor assigns each one experiment)
+and the rest are random (fresh context, no assignment).
 
 ### Eval Checkpoint
 If --evals: check if current_iteration % interval == 0 → run checkpoint analysis.
@@ -101,7 +103,7 @@ If bounded: current_iteration >= max_iterations → exit loop, print summary.
 
 ## Summary (after loop ends)
 
-Print: total iterations, kept/discarded counts, starting metric → best metric reached in any lineage, improvement %, top 3 most effective changes, fork rounds run and which ones moved the incumbent.
+Print: total iterations, kept/discarded counts, starting metric → best metric reached in any lineage, improvement %, top 3 most effective changes, fork rounds run and which ones moved the incumbent, and fork wins by kind (random vs guided).
 
 ## Eval Checkpoint (--evals flag)
 
