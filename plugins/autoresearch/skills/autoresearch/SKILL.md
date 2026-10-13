@@ -61,13 +61,16 @@ Print a banner on every invocation: `[autoresearch] mode: classic | orchestrator
 | `--auto` | Bare `$autoresearch` | Force Orchestrator mode |
 | `--no-fork` | Metric loops | Disable fork-and-flush rounds |
 | `Forks: K` | Metric loops | Branches per fork-and-flush round (default 4; 2 when Verify is slow or uses a shared resource) |
+| `Guided: R` | Metric loops | Fraction of fork branches given an Advisor-assigned experiment (default 0.5; 0 = all random) |
 
 ## Getting Unstuck: Fork-and-Flush
 
 Metric loops run fork-and-flush rounds on a fixed schedule: at 33% and 66% of the budget, plus early when 5
 iterations pass with no `keep`. A round forks K fresh-context branches from the best commit so far, runs each
 for a small budget, and keeps the winner. A fresh context means the files and results log only, with none of
-the leader's reasoning. Protocol: `references/fork-and-flush.md` (arXiv:2610.07447).
+the leader's reasoning. Half the branches (by default) are random and pick their own ideas; the other half are
+guided, each given one distinct experiment by a stateless Advisor that reads the results log. Protocol:
+`references/fork-and-flush.md` (arXiv:2610.07447, arXiv:2610.07625).
 
 ## Orchestrator
 

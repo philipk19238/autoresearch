@@ -29,6 +29,7 @@ Iterations: <N | unlimited — default: 25>
 | `--chain <targets>` | Hand off to next command(s) after loop |
 | `--no-fork` | Disable fork-and-flush rounds |
 | `Forks: K` | Branches per fork-and-flush round (default 4) |
+| `Guided: R` | Fraction of fork branches given an Advisor-assigned experiment (default 0.5) |
 
 ### Config Fields
 
@@ -227,6 +228,21 @@ Forks: 2
 
 Use `Forks: 2` when Verify is slow or needs a single shared resource (one local stack, one test database); the
 branches then run one after another. Use `--no-fork` for mechanical sweeps with no ideas to get stuck on.
+
+### Random and guided branches
+
+Each round mixes two kinds of branch:
+
+- **Random** branches get only the task. Each fresh agent works out its own next idea, which is where the
+  randomness comes from.
+- **Guided** branches each get one concrete experiment from a stateless Advisor
+  ([Zhang et al., arXiv:2610.07625](https://arxiv.org/abs/2610.07625)). The Advisor reads the results TSV and
+  `git log`, then hands out experiments that differ from each other and from every logged failure, so no budget
+  is spent twice on the same idea.
+
+`Guided: R` sets the split: `floor(K × R)` guided, the rest random. The default 0.5 gives 2 + 2 at K = 4 and
+1 + 1 at K = 2. `Guided: 0` is fork-and-flush as published. The summary reports wins by kind, so you can move R
+toward whichever kind keeps winning.
 
 ---
 

@@ -1,12 +1,16 @@
 # Fork-and-Flush
 
-How a metric loop gets out of an idea basin. Source: Cai et al., "Fork-and-Flush: Escaping Idea Basins in
-Autoresearch Agents" ([arXiv:2610.07447](https://arxiv.org/abs/2610.07447)).
+How a metric loop gets out of an idea basin. Sources: Cai et al., "Fork-and-Flush: Escaping Idea Basins in
+Autoresearch Agents" ([arXiv:2610.07447](https://arxiv.org/abs/2610.07447)), for the random branches, and Zhang et
+al., "Stateless Language Agents: Scaling Long-Horizon Automated Research"
+([arXiv:2610.07625](https://arxiv.org/abs/2610.07625)), for the guided branches.
 
 ## Contents
 - Why
+- Random and guided branches
 - When to run a round
 - One round
+- Advisor
 - Orchestrator
 - Cost
 - Opt out
@@ -30,6 +34,26 @@ Paper results, 13 tasks, matched budget (normalized score):
 
 The flush-only and fork-only numbers come from the ablation, which ran on 11 of the 13 tasks.
 
+## Random and guided branches
+
+A round splits its K branches into two kinds:
+
+| Kind | Told | Brings |
+|---|---|---|
+| **Random** | Nothing beyond the task. Works out what to try from the files. | Randomness: each fresh agent can land in a basin nobody planned for (fork-and-flush). |
+| **Guided** | One concrete experiment, chosen by a stateless Advisor from the results so far. | Coverage: no two branches spend their budget on the same idea, and none repeats a logged failure (stateless agents). |
+
+`Guided: R` sets the guided fraction. Guided branches = `floor(K × R)`; the rest are random. Default R = 0.5.
+
+| K | R = 0.5 | R = 0 | R = 1 |
+|---|---|---|---|
+| 4 | 2 random + 2 guided | 4 random (fork-and-flush as published) | 4 guided |
+| 3 | 2 random + 1 guided | 3 random | 3 guided |
+| 2 | 1 random + 1 guided | 2 random | 2 guided |
+
+Keep at least one random branch unless you have a reason not to. Random branches are the only source of ideas
+the Advisor would not think of.
+
 ## When to run a round
 
 Run rounds on a **fixed schedule**, not when a plateau is detected. The paper tried plateau triggers and
@@ -49,7 +73,7 @@ the next scheduled one, so the total number of rounds does not grow.
 
 1. **Protect the incumbent.** The incumbent is the commit with the best metric so far. Tag it
    (`git tag -f autoresearch/incumbent <sha>`). No branch may revert or overwrite it.
-2. **Fork K branches.** Default K = 4. Use K = 2 when one Verify run takes more than about 5 minutes, or when
+2. **Fork K branches.** Default K = 4, split into random and guided branches by `Guided: R`. Use K = 2 when one Verify run takes more than about 5 minutes, or when
    it needs a single shared resource such as one local stack or one test database. In that case run the
    branches one after another.
    - Each branch is a fresh-context sub-agent in its own git worktree, starting at the incumbent. In Claude
@@ -58,31 +82,51 @@ the next scheduled one, so the total number of rounds does not grow.
      checkout.
    - Branch budget: `max(2, round(0.06 × N))` iterations, where N is the loop's total iterations. Unbounded
      loops use 2.
-3. **Flush: what a branch is told.**
+3. **Ask the Advisor** (skip when there are no guided branches). One stateless call returns one experiment per
+   guided branch. See Advisor below.
+4. **Flush: what a branch is told.**
    - Give it: Goal, Scope, Metric, Direction, Verify, Guard, its iteration budget, the path of the results TSV,
      and the rule that the incumbent tag is protected.
+   - A guided branch also gets its assigned experiment. Its first iteration tests that experiment. If it is
+     kept, later iterations build on it; if not, the branch continues freely for the rest of its budget.
    - Do not give it: the leader's hypotheses, plans, ranking of ideas, or a summary of the conversation. The
      results TSV and `git log` are artifacts, so the branch may read them. That is the "files" half of
      fork-and-flush.
-   - Do not tell some branches to "try something completely different". In the paper that directive had no
-     measurable effect on which branch won.
-4. **Each branch runs the core loop** (Phases 1–7) on its own branch, and returns its best metric and its kept
+   - Do not tell random branches to "try something completely different". In the paper that directive had no
+     measurable effect on which branch won. A concrete assignment is a different thing: in the stateless-agents
+     paper, explicit experiment assignments helped.
+5. **Each branch runs the core loop** (Phases 1–7) on its own branch, and returns its best metric and its kept
    commits.
-5. **Select.** The branch with the best metric wins. On a tie with the incumbent, the branch still wins,
+6. **Select.** The branch with the best metric wins. On a tie with the incumbent, the branch still wins,
    because its context is fresh.
    - Bring the winner's kept commits onto the loop branch (fast-forward or cherry-pick). Discard the other
      branches and remove their worktrees.
    - If no branch beat the incumbent, the loop branch stays at the incumbent, and the winner's context still
      becomes the leader.
-6. **Hand over leadership.** The winning branch's agent continues as the leader until the next round. In Claude
+7. **Hand over leadership.** The winning branch's agent continues as the leader until the next round. In Claude
    Code, resume it with `SendMessage` so its context carries on. If the platform can't resume it, the main agent
    continues, but only after re-reading the TSV and `git log`, and it treats its own earlier hypotheses as
    stale.
-7. **Log.**
-   - One TSV row per branch with status `fork-{k}`, carrying that branch's best metric.
-   - One row with status `fork-select`, naming the winner and whether it beat the incumbent.
+8. **Log.**
+   - One TSV row per branch with status `fork-{k}`, carrying that branch's best metric. Start the description
+     with `random:` or `guided: <experiment>`.
+   - One row with status `fork-select`, naming the winner, its kind, and whether it beat the incumbent.
 
 The loop's final result is the best metric any branch or the leader ever reached, not the leader's last value.
+
+## Advisor
+
+A fresh-context sub-agent, called once per round before the branches start. It plans; it never edits files.
+
+- **Reads:** Goal, Scope, Metric, Direction, the results TSV, `git log`, and the incumbent's diff against the
+  baseline. Not the leader's conversation, hypotheses, or plans: the Advisor is flushed too.
+- **Returns:** exactly one experiment per guided branch. Each is one change, stated concretely enough to make in
+  one iteration (what to change, where, and the expected effect on the metric).
+- **Rules:** the experiments differ from each other, and none repeats a change the TSV already records as
+  `discard`, `crash`, or `metric-error`. Prefer directions the TSV shows as untried or under-explored over more
+  tuning of what already worked.
+
+Over a run, compare wins by kind in the `fork-select` rows. If one kind never wins, move R toward the other.
 
 ## Orchestrator
 
@@ -93,7 +137,8 @@ and the loop stops.
 
 ## Cost
 
-A round costs about K × 6% of the budget. The paper spends roughly 72% of the budget on branches (an opening
+A round costs about K × 6% of the budget. The Advisor adds one short call per round; in the stateless-agents
+paper the Advisor used under 0.6% of all tokens. The paper spends roughly 72% of the budget on branches (an opening
 round plus two scheduled rounds) and still beats a single run at the same total cost. When Verify is expensive,
 use K = 2 rather than skipping rounds: flushing alone recovers about half of the gain.
 
