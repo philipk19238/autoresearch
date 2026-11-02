@@ -4,7 +4,7 @@
 
 **By [Philip Kung](https://github.com/philipk19238)**, built on [Udit Goenka's autoresearch](https://github.com/uditgoenka/autoresearch)
 
-[![Version](https://img.shields.io/badge/version-2.2.2-blue.svg)](https://github.com/philipk19238/autoresearch/releases)
+[![Version](https://img.shields.io/badge/version-2.3.0-blue.svg)](https://github.com/philipk19238/autoresearch/releases)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](../LICENSE)
 
 </div>

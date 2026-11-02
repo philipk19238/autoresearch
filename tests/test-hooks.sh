@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# A developer shell may disable guards; tests need them all on.
+for ar_var in $(compgen -v AR_DISABLE_ || true); do unset "$ar_var"; done
+
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 HOOKS_DIR="$REPO_ROOT/.claude/hooks/autoresearch"
@@ -85,6 +88,42 @@ assert_stderr_contains() {
     FAIL=$((FAIL + 1))
   fi
 }
+
+# Guard hooks act only while an autoresearch run is active in the session.
+# Session state lives in os.tmpdir(), so point it at a private directory.
+ACTIVE_TMP=$(mktemp -d)
+export TMPDIR="$ACTIVE_TMP" TEMP="$ACTIVE_TMP" TMP="$ACTIVE_TMP"
+
+activate_run() {
+  node -e 'require(process.argv[1]).markRunActiveFromPrompt({ session_id: process.argv[2], prompt: "/autoresearch" })' \
+    "$HOOKS_DIR/lib/ar-hook-utils.cjs" "${1:-unknown}"
+}
+
+# ============================================================================
+# Test: guards stay off outside an autoresearch run
+# ============================================================================
+
+printf '\n--- Testing guards outside a run ---\n'
+
+run_hook "scout-block.cjs" '{"session_id":"no-run","tool_name":"Read","tool_input":{"file_path":"node_modules/express/index.js"}}'
+assert_exit 0 "scout-block: inactive session is not blocked"
+
+run_hook "dangerous-cmd-block.cjs" '{"session_id":"no-run","tool_name":"Bash","tool_input":{"command":"git push --force"}}'
+assert_exit 0 "dangerous-cmd-block: inactive session is not blocked"
+
+run_hook "dangerous-cmd-block.cjs" '{"session_id":"no-run","prompt":"/autoresearch Goal: x","tool_name":"Bash","tool_input":{"command":"git push --force"}}'
+assert_exit 2 "dangerous-cmd-block: prompt that invokes a run activates the guard"
+
+run_hook "run-marker.cjs" '{"session_id":"skill-run","tool_name":"Skill","tool_input":{"skill":"autoresearch:autoresearch"}}'
+assert_exit 0 "run-marker: skill load exits 0"
+run_hook "dangerous-cmd-block.cjs" '{"session_id":"skill-run","tool_name":"Bash","tool_input":{"command":"git push --force"}}'
+assert_exit 2 "run-marker: model-loaded skill activates the guard"
+
+run_hook "run-marker.cjs" '{"session_id":"other-skill","tool_name":"Skill","tool_input":{"skill":"autoui"}}'
+run_hook "dangerous-cmd-block.cjs" '{"session_id":"other-skill","tool_name":"Bash","tool_input":{"command":"git push --force"}}'
+assert_exit 0 "run-marker: unrelated skill leaves guards off"
+
+activate_run unknown
 
 # ============================================================================
 # Test: scout-block.cjs
@@ -433,7 +472,13 @@ run_hook "dangerous-cmd-block.cjs" '{"tool_name":"Bash","tool_input":{"command":
 assert_exit 2 "dangerous-cmd-block: blocks bundled git clean flags"
 
 run_hook "dangerous-cmd-block.cjs" '{"tool_name":"Bash","tool_input":{"command":"git push origin main --force-with-lease"}}'
-assert_exit 2 "dangerous-cmd-block: blocks force-with-lease"
+assert_exit 0 "dangerous-cmd-block: allows force-with-lease"
+
+run_hook "dangerous-cmd-block.cjs" '{"tool_name":"Bash","tool_input":{"command":"git push --force-if-includes --force-with-lease origin main"}}'
+assert_exit 0 "dangerous-cmd-block: allows force-if-includes"
+
+run_hook "dangerous-cmd-block.cjs" '{"tool_name":"Bash","tool_input":{"command":"git push origin +main"}}'
+assert_exit 2 "dangerous-cmd-block: blocks +refspec force push"
 
 run_hook "dangerous-cmd-block.cjs" '{"tool_name":"Bash","tool_input":{"command":"echo rm -rf /"}}'
 assert_exit 0 "dangerous-cmd-block: harmless echoed text stays allowed"
@@ -492,6 +537,61 @@ assert_exit 0 "dangerous-cmd-block: heredoc body text is not executed"
 run_hook "dangerous-cmd-block.cjs" $'{"tool_name":"Bash","tool_input":{"command":"cat <<'\''TEXT'\''\nhello\nTEXT\ngit reset --hard HEAD"}}'
 assert_exit 2 "dangerous-cmd-block: parser continues after heredoc terminator"
 
+run_hook "dangerous-cmd-block.cjs" $'{"tool_name":"Bash","tool_input":{"command":"bash <<\'TEXT\'\\ngit reset --hard HEAD\\nTEXT"}}'
+assert_exit 2 "dangerous-cmd-block: heredoc body fed to bash is checked"
+
+run_hook "dangerous-cmd-block.cjs" $'{"tool_name":"Bash","tool_input":{"command":"cat <<\'TEXT\' | sh\\ngit reset --hard HEAD\\nTEXT"}}'
+assert_exit 2 "dangerous-cmd-block: heredoc body piped to sh is checked"
+
+run_hook "dangerous-cmd-block.cjs" $'{"tool_name":"Bash","tool_input":{"command":"bash run.sh; cat <<\'TEXT\'\\nit\'s fine\\nTEXT\\ngit reset --hard HEAD"}}'
+assert_exit 2 "dangerous-cmd-block: apostrophe in a heredoc body cannot hide later commands"
+
+run_hook "dangerous-cmd-block.cjs" $'{"tool_name":"Bash","tool_input":{"command":"bash<<TEXT\\ngit reset --hard HEAD\\nTEXT"}}'
+assert_exit 2 "dangerous-cmd-block: shell name right before << is seen"
+
+run_hook "dangerous-cmd-block.cjs" $'{"tool_name":"Bash","tool_input":{"command":"cat <<A <<B\\nB\\n\'\\nA\\nB\\ngit reset --hard HEAD"}}'
+assert_exit 2 "dangerous-cmd-block: an early end line for the second heredoc cannot hide later commands"
+
+run_hook "dangerous-cmd-block.cjs" $'{"tool_name":"Bash","tool_input":{"command":"cat <<EOF\\nEOF \\n\'\\nEOF\\ngit reset --hard HEAD"}}'
+assert_exit 2 "dangerous-cmd-block: an end line with a trailing space does not end the heredoc"
+
+run_hook "dangerous-cmd-block.cjs" $'{"tool_name":"Bash","tool_input":{"command":"<<EOF git reset --hard HEAD\\nhi\\nEOF"}}'
+assert_exit 2 "dangerous-cmd-block: a line that starts with << still checks the rest of the line"
+
+run_hook "dangerous-cmd-block.cjs" '{"tool_name":"Bash","tool_input":{"command":"2>/dev/null git reset --hard HEAD"}}'
+assert_exit 2 "dangerous-cmd-block: a file-number redirect before the name is skipped"
+
+run_hook "dangerous-cmd-block.cjs" '{"tool_name":"Bash","tool_input":{"command":"git reset &>/dev/null --hard HEAD"}}'
+assert_exit 2 "dangerous-cmd-block: flags after a bash &> redirect stay with the command"
+
+run_hook "dangerous-cmd-block.cjs" '{"tool_name":"Bash","tool_input":{"command":"git push origin &>/dev/null --force"}}'
+assert_exit 2 "dangerous-cmd-block: --force after a bash &> redirect is seen"
+
+run_hook "dangerous-cmd-block.cjs" '{"tool_name":"Bash","tool_input":{"command":"true &>x git reset --hard HEAD"}}'
+assert_exit 2 "dangerous-cmd-block: the sh reading of &> (background, then a redirect) is checked"
+
+run_hook "dangerous-cmd-block.cjs" '{"tool_name":"Bash","tool_input":{"command":"<>f git reset --hard HEAD"}}'
+assert_exit 2 "dangerous-cmd-block: a read-write redirect before the name is skipped"
+
+run_hook "privacy-block.cjs" '{"tool_name":"Bash","tool_input":{"command":"<credentials.json cat"}}'
+assert_exit 0 "privacy-block: leading sensitive redirect asks"
+assert_contains "\"permissionDecision\":\"ask\"" "privacy-block: a leading redirect target is still checked"
+
+run_hook "dangerous-cmd-block.cjs" $'{"tool_name":"Bash","tool_input":{"command":"cat <<EOF>notes.md\\nhi\\nEOF\\ngit reset --hard HEAD"}}'
+assert_exit 2 "dangerous-cmd-block: a redirect right after the heredoc word does not hide later commands"
+
+run_hook "dangerous-cmd-block.cjs" $'{"tool_name":"Bash","tool_input":{"command":"cat <<\\\\EOF\\nhi\\nEOF\\ngit reset --hard HEAD"}}'
+assert_exit 2 "dangerous-cmd-block: a backslash-quoted heredoc word does not hide later commands"
+
+run_hook "dangerous-cmd-block.cjs" $'{"tool_name":"Bash","tool_input":{"command":"cat <<EOF\\nhi\\ngit reset --hard HEAD"}}'
+assert_exit 2 "dangerous-cmd-block: a heredoc with no end line is still checked"
+
+run_hook "dangerous-cmd-block.cjs" $'{"tool_name":"Bash","tool_input":{"command":"cat <<E\\\\\\nF\\nhi\\nEF\\ngit reset --hard HEAD\\nE"}}'
+assert_exit 2 "dangerous-cmd-block: a heredoc word split by backslash-newline does not hide later commands"
+
+run_hook "dangerous-cmd-block.cjs" $'{"tool_name":"Bash","tool_input":{"command":"cat <<E$(x)\\nhi\\nE$(x)\\ngit reset --hard HEAD\\nE$"}}'
+assert_exit 2 "dangerous-cmd-block: a heredoc word with a command substitution does not hide later commands"
+
 run_hook "dangerous-cmd-block.cjs" '{"tool_name":"Bash","tool_input":{"command":"echo foo#bar; git reset --hard HEAD"}}'
 assert_exit 2 "dangerous-cmd-block: hash inside word is not treated as comment"
 
@@ -535,7 +635,7 @@ assert_exit 0 "dangerous-cmd-block: disabled via env var"
 printf '\n--- Testing iteration-context.cjs ---\n'
 
 TEMP_DIR=$(mktemp -d)
-trap "rm -rf $TEMP_DIR" EXIT
+trap "rm -rf $TEMP_DIR $ACTIVE_TMP" EXIT
 
 cd "$TEMP_DIR"
 
@@ -637,6 +737,15 @@ printf '\n--- Testing dev-rules-reminder.cjs ---\n'
 # Clean up from previous tests
 rm -rf autoresearch/
 
+# Test: Inactive session gets no reminder
+run_hook "dev-rules-reminder.cjs" '{"session_id":"dev-no-run"}'
+assert_exit 0 "dev-rules-reminder: inactive session exits 0"
+assert_not_contains "Dev context" "dev-rules-reminder: inactive session injects nothing"
+
+activate_run dev-iter-1
+activate_run dev-iter-5
+activate_run dev-recent
+
 # Test: Skip on non-5th iteration
 run_hook "dev-rules-reminder.cjs" '{"session_id":"dev-iter-1"}'
 assert_exit 0 "dev-rules-reminder: iteration 1 skips"
@@ -664,6 +773,15 @@ printf '\n--- Testing simplify-gate.cjs ---\n'
 git init > /dev/null 2>&1
 git config user.name "Autoresearch Tests"
 git config user.email "autoresearch-tests@example.invalid"
+
+# Test: Inactive session is never gated
+awk 'BEGIN { for (i=0; i<900; i++) print "x" }' > inactive-bulk.txt
+run_hook "simplify-gate.cjs" '{"session_id":"simplify-no-run","prompt":"ship this"}'
+assert_exit 0 "simplify-gate: inactive session is not gated"
+assert_not_contains "WARNING" "simplify-gate: inactive session gets no warning"
+rm -f inactive-bulk.txt
+
+activate_run unknown
 
 # Test: No shipping verb
 run_hook "simplify-gate.cjs" '{"prompt":"fix the bug"}'
@@ -706,6 +824,13 @@ run_hook "simplify-gate.cjs" '{"prompt":"publish release"}'
 assert_exit 0 "simplify-gate: untracked-only threshold warns without blocking"
 assert_contains "WARNING" "simplify-gate: untracked-only changes produce warning"
 rm -f bulk-untracked.txt
+
+# Test: untracked binary files are not counted as lines
+node -e 'const b=Buffer.alloc(200000); for (let i=0;i<b.length;i++) b[i]=i%7===0?10:(i%3===0?0:65); require("fs").writeFileSync("asset.bin", b)'
+run_hook "simplify-gate.cjs" '{"prompt":"publish release"}'
+assert_exit 0 "simplify-gate: untracked binary allows"
+assert_not_contains "WARNING" "simplify-gate: untracked binary is not counted"
+rm -f asset.bin
 
 # Test: unstaged tracked changes count toward threshold
 awk 'BEGIN { for (i=0; i<401; i++) print "x" }' >> test.txt
@@ -767,6 +892,18 @@ if [[ -f "$SESSION_FILE" ]]; then
     printf '  FAIL: %s\n' "session-init: state file contains projectRoot"
     FAIL=$((FAIL + 1))
   fi
+fi
+
+# Compact and resume re-run SessionStart with the same id; the run flag must survive
+TMPDIR="$HOOK_TMP" TEMP="$HOOK_TMP" TMP="$HOOK_TMP" activate_run session-init-test
+TMPDIR="$HOOK_TMP" TEMP="$HOOK_TMP" TMP="$HOOK_TMP" run_hook "session-init.cjs" '{"session_id":"session-init-test"}' "runner"
+TOTAL=$((TOTAL + 1))
+if grep -q '"autoresearchActive": *true' "$SESSION_FILE"; then
+  printf '  PASS: %s\n' "session-init: keeps active run across compact/resume"
+  PASS=$((PASS + 1))
+else
+  printf '  FAIL: %s\n' "session-init: keeps active run across compact/resume"
+  FAIL=$((FAIL + 1))
 fi
 
 # Test: Disabled via env var
@@ -870,7 +1007,7 @@ else
 fi
 
 ALL_REGISTERED=1
-for hook in scout-block privacy-block dangerous-cmd-block iteration-context dev-rules-reminder simplify-gate subagent-context session-init stop-notify; do
+for hook in scout-block privacy-block dangerous-cmd-block run-marker iteration-context dev-rules-reminder simplify-gate subagent-context session-init stop-notify; do
   grep -q "$hook.cjs" "$CLAUDE_INSTALL/settings.json" || ALL_REGISTERED=0
 done
 TOTAL=$((TOTAL + 1))
@@ -969,6 +1106,44 @@ else
 fi
 
 rm -rf "$LOG_HOME" "$LOG_PROJ"
+
+# ============================================================================
+# Shell parsing and ignore patterns
+# ============================================================================
+
+AR_PROMPT='"prompt":"/autoresearch Goal: x"'
+run_hook "dangerous-cmd-block.cjs" "{\"session_id\":\"parse-1\",$AR_PROMPT,\"tool_name\":\"Bash\",\"tool_input\":{\"command\":\"cat <<-EOF\\n\\tbody\\n\\tEOF\\nrm -rf /\"}}"
+assert_exit 2 "dangerous-cmd-block: a command after a <<- heredoc is still checked"
+
+run_hook "dangerous-cmd-block.cjs" "{\"session_id\":\"parse-2\",$AR_PROMPT,\"tool_name\":\"Bash\",\"tool_input\":{\"command\":\"rm -r --one-file-system build\"}}"
+assert_exit 0 "dangerous-cmd-block: an f inside a long rm option is not --force"
+
+run_hook "dangerous-cmd-block.cjs" "{\"session_id\":\"parse-3\",$AR_PROMPT,\"tool_name\":\"Bash\",\"tool_input\":{\"command\":\"rm --recursive --force build\"}}"
+assert_exit 2 "dangerous-cmd-block: blocks rm --recursive --force"
+
+run_hook "dangerous-cmd-block.cjs" "{\"session_id\":\"parse-4\",$AR_PROMPT,\"tool_name\":\"Bash\",\"tool_input\":{\"command\":\"rm --recur --forc build\"}}"
+assert_exit 2 "dangerous-cmd-block: blocks abbreviated rm --recur --forc"
+
+TOTAL=$((TOTAL + 1))
+IGNORE_OUT=$(node -e '
+const ig = require(process.argv[1]);
+const dir = ig().add("node_modules/");
+const nested = ig().add("src/gen/");
+const plus = ig().add("a+b.txt");
+const cls = ig().add("*.[oa]");
+const neg = ig().add("*.[!o]");
+const bad = ig().add(["foo[", "tail\\\\", "*.log"]);
+const root = ig().add("/secrets");
+const lone = ig().add("/");
+process.stdout.write([dir.ignores("pkg/node_modules/x"), nested.ignores("src/gen/x"), nested.ignores("x/src/gen/y"), plus.ignores("a+b.txt"), plus.ignores("aab.txt"), cls.ignores("lib.o"), cls.ignores("lib.c"), neg.ignores("lib.o"), neg.ignores("lib.c"), neg.ignores("a/b"), ig().add(["[z-a]", "*.log"]).ignores("x.log"), bad.ignores("foo["), bad.ignores("x.log"), root.ignores("secrets/x"), root.ignores("a/secrets/x"), lone.ignores("x")].join(","));
+' "$HOOKS_DIR/lib/ignore.cjs")
+if [[ "$IGNORE_OUT" == "true,true,false,true,false,true,false,false,true,false,true,true,true,true,false,false" ]]; then
+  printf '  PASS: ignore: trailing-slash dirs match at any depth, regex characters are literal, bracket classes work, a leading slash anchors to the root\n'
+  PASS=$((PASS + 1))
+else
+  printf '  FAIL: ignore patterns (got %s)\n' "$IGNORE_OUT"
+  FAIL=$((FAIL + 1))
+fi
 
 # ============================================================================
 # Summary

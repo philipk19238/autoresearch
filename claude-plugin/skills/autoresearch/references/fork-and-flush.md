@@ -56,7 +56,7 @@ the Advisor would not think of.
 
 ## When to run a round
 
-Run rounds on a **fixed schedule**, not when a plateau is detected. The paper tried plateau triggers and
+In a metric loop, run rounds on a **fixed schedule**, not when a plateau is detected. The paper tried plateau triggers and
 dropped them: small gains keep resetting the stall clock, so a loop creeping upward inside one basin never
 triggers, and 15 of 25 plateau-triggered runs used up their budget before the trigger fired.
 
@@ -66,7 +66,9 @@ triggers, and 15 of 25 plateau-triggered runs used up their budget before the tr
 | Bounded, N < 12 | one round, at 50% of N |
 | Unbounded | every 20 iterations |
 
-**Early trigger:** also run a round when the last 5 iterations produced no `keep`. Each early round replaces
+The orchestrator has no fixed iteration budget, so it uses its plateau signal instead (see Orchestrator below).
+
+**Early trigger:** also run a round when 5 iterations since the last `keep` or the last round produced no `keep`. Each early round replaces
 the next scheduled one, so the total number of rounds does not grow.
 
 ## One round
@@ -130,10 +132,13 @@ Over a run, compare wins by kind in the `fork-select` rows. If one kind never wi
 
 ## Orchestrator
 
-`orchestrate.sh verdict` answers `FORK` instead of `PLATEAU` while the state's `fork_rounds_since_progress` is
-below 2. On `FORK`, run one round from the incumbent, add 1 to `fork_rounds_since_progress`, and continue the
-loop. Reset it to 0 whenever units improve. Once 2 rounds pass with no progress, `verdict` answers `PLATEAU`
-and the loop stops.
+The branch Metric is units remaining (lower is better) and Verify is the confirmed predicate command, so the round works for every archetype.
+
+When `orchestrate.sh plateau` exits 0 (flat) and the cycle ceiling is not reached, run one round from the incumbent while
+`fork_rounds_since_progress` is below 2, add 1 to it, and continue the loop. Reset it to 0 whenever units
+improve. Once 2 rounds pass with no progress, stop and report `PLATEAU`. `orchestrate.sh verdict` follows
+the same rule: it answers `FORK` while rounds remain and `PLATEAU` after. Under `--no-fork`, skip the rounds
+and treat `FORK` as `PLATEAU`.
 
 ## Cost
 

@@ -37,9 +37,15 @@ jobs:
           test -z "$(git status --porcelain)"
       - name: Verify Claude guardrails
         run: bash tests/test-hooks.sh
+      - name: Verify pi extension guardrails
+        run: |
+          npm install -g @earendil-works/pi-coding-agent@1.2.0
+          bash tests/test-pi.sh
       - name: Verify orchestration and clean installs
         run: bash tests/test-orchestrator.sh
       - name: Verify regression scoring
         run: bash tests/test-regression.sh
       - name: Verify maintenance and release refusal
         run: bash tests/test-maintenance.sh
+      - name: Verify per-tool installs
+        run: bash tests/test-install.sh

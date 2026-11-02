@@ -1,0 +1,8 @@
+{
+  "name": "autoresearch",
+  "private": true,
+  "description": "Repository root manifest so `pi install git:github.com/philipk19238/autoresearch` loads the pi extension.",
+  "pi": {
+    "extensions": ["./pi-extension/src/index.ts"]
+  }
+}

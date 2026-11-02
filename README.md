@@ -2,14 +2,15 @@
 
 # Autoresearch
 
-**Turn [Claude Code](https://docs.anthropic.com/en/docs/claude-code), [OpenCode](https://opencode.ai), or [OpenAI Codex](https://developers.openai.com/codex) into a relentless improvement engine.**
+**Turn [Claude Code](https://docs.anthropic.com/en/docs/claude-code), [OpenCode](https://opencode.ai), [OpenAI Codex](https://developers.openai.com/codex), [pi](https://github.com/earendil-works/pi-coding-agent), or Muse into a relentless improvement engine.**
 
 Based on [Karpathy's autoresearch](https://github.com/karpathy/autoresearch) — constraint + mechanical metric + autonomous iteration = compounding gains.
 
 [![Claude Code Skill](https://img.shields.io/badge/Claude_Code-Skill-blue?logo=anthropic&logoColor=white)](https://docs.anthropic.com/en/docs/claude-code)
 [![OpenCode](https://img.shields.io/badge/OpenCode-Skill-purple)](https://opencode.ai)
 [![Codex](https://img.shields.io/badge/Codex-Skill-green?logo=openai&logoColor=white)](https://developers.openai.com/codex)
-[![Version](https://img.shields.io/badge/version-2.2.2-blue.svg)](https://github.com/philipk19238/autoresearch/releases)
+[![pi](https://img.shields.io/badge/pi-Extension-teal)](https://github.com/earendil-works/pi-coding-agent)
+[![Version](https://img.shields.io/badge/version-2.3.0-blue.svg)](https://github.com/philipk19238/autoresearch/releases)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
 [![Based on](https://img.shields.io/badge/Based_on-Karpathy's_Autoresearch-orange)](https://github.com/karpathy/autoresearch)
@@ -21,7 +22,7 @@ Based on [Karpathy's autoresearch](https://github.com/karpathy/autoresearch) —
 
 *You don't need AGI. You need a goal, a metric, and a loop that never quits.*
 
-**Supports Claude Code, OpenCode, and OpenAI Codex for the core skill, bundled runtime, installation, and verification surface. Hook guardrails are Claude Code-only.**
+**Supports Claude Code, OpenCode, OpenAI Codex, pi, and Muse for the core skill, bundled runtime, installation, and verification surface. Hook guardrails ship for Claude Code (native hooks) and pi (extension events).**
 
 > **Fork-and-flush:** metric loops escape plateaus the way [Cai et al. (arXiv:2610.07447)](https://arxiv.org/abs/2610.07447) do. At 33% and 66% of the budget, or after 5 iterations with no `keep`, the loop forks fresh-context branches from the best commit so far, runs each briefly, and keeps the winner. Half the branches pick their own ideas (randomness); the other half each get a distinct experiment from a stateless Advisor that reads the results log ([Zhang et al., arXiv:2610.07625](https://arxiv.org/abs/2610.07625)); `Guided: R` sets the split. The orchestrator answers a plateau with `FORK` before it gives up. See [guide/autoresearch.md](guide/autoresearch.md#getting-unstuck-fork-and-flush). Built on [Udit Goenka's autoresearch](https://github.com/uditgoenka/autoresearch).
 
@@ -107,7 +108,7 @@ Before looping, Claude performs a one-time setup:
 | 1 | **Bounded by default** — every command has a default iteration count; unlimited is opt-in via `Iterations: unlimited` |
 | 2 | **Read before write** — understand full context before modifying |
 | 3 | **One change per iteration** — atomic changes; if it breaks, you know why |
-| 4 | **Mechanical verification only** — no subjective "looks good"; use metrics |
+| 4 | **Mechanical search signal, independent acceptance** — no subjective "looks good"; the optimized metric never certifies behavior preservation |
 | 5 | **Automatic rollback** — failed changes revert instantly |
 | 6 | **Simplicity wins** — equal results + less code = keep |
 | 7 | **Git is memory** — experiments committed with `experiment:` prefix; agent reads `git log` + `git diff` before each iteration |
@@ -117,7 +118,7 @@ Before looping, Claude performs a one-time setup:
 
 ## Hooks & Safety
 
-Hooks are defense-in-depth guardrails, not a security sandbox. Claude Code ships the hook surface; OpenCode and Codex ship the core skill/runtime/install surface without hook parity.
+Hooks are defense-in-depth guardrails, not a security sandbox. Claude Code ships the hook surface natively; pi ships the same guardrails as extension events (`tool_call`, `before_agent_start`, `input`, `session_start`, `session_shutdown`). OpenCode, Codex, and Muse ship the core skill/runtime/install surface without hook parity.
 
 ### What's Protected
 
@@ -314,6 +315,52 @@ cp -r autoresearch/.agents/skills/autoresearch ~/.codex/skills/autoresearch
 
 > Invoke via `$autoresearch` mention syntax. Subcommands are keywords: `$autoresearch plan`, `$autoresearch debug`, `$autoresearch evals`, etc.
 > The installed Codex package includes the bundled orchestrator and regression helpers under `plugins/autoresearch/skills/autoresearch/` and `.agents/skills/autoresearch/`.
+
+### pi Quick Start
+
+**Option A — Guided installer (recommended):**
+```bash
+git clone https://github.com/philipk19238/autoresearch.git
+cd autoresearch
+./scripts/install.sh --pi --global
+```
+
+**Option B — pi package install:**
+```bash
+pi install git:github.com/philipk19238/autoresearch
+```
+
+**Option C — Try without installing:**
+```bash
+pi -e ./pi-extension
+```
+
+> Invoke commands as pi prompt templates: `/autoresearch`, `/autoresearch_debug`, `/autoresearch_fix`, … (underscore names). The dispatcher is a skill: `/skill:autoresearch`.
+> The pi extension ports the Claude hook guardrails (scout/privacy/dangerous-cmd block, iteration context, simplify gate, stop-notify) to pi extension events. See [`pi-extension/README.md`](pi-extension/README.md) for the full hook→event mapping and `AR_DISABLE_*` flags.
+
+### Muse Quick Start
+
+**Option A — Guided installer (recommended):**
+```bash
+git clone https://github.com/philipk19238/autoresearch.git
+cd autoresearch
+./scripts/install.sh --muse --global
+```
+
+**Option B — Manual install with the Muse CLI:**
+```bash
+git clone https://github.com/philipk19238/autoresearch.git
+muse skills install autoresearch/.muse/skills/autoresearch --scope user
+```
+
+Or project-local, so every Muse session in that project picks it up. Run it from your project folder:
+```bash
+cd /path/to/your-project
+bash /path/to/autoresearch/scripts/install.sh --muse --local
+```
+
+> Invoke by asking Muse to use the autoresearch skill with a subcommand keyword: `autoresearch plan`, `autoresearch debug`, `autoresearch fix`, etc.
+> The installed Muse package includes the bundled orchestrator and regression helpers under `.muse/skills/autoresearch/`.
 
 ### Run It
 
@@ -667,8 +714,8 @@ autoresearch/
 ├── COMPARISON.md                                  ← Karpathy's vs Claude Autoresearch
 ├── guide/                                         ← Guides — one per command + advanced patterns
 ├── scripts/
-│   ├── install.sh                                 ← Guided installer (Claude Code + OpenCode + Codex)
-│   ├── transform.sh                               ← Single transform: .claude/ → .opencode/ + .agents/
+│   ├── install.sh                                 ← Guided installer (Claude Code + OpenCode + Codex + Muse)
+│   ├── transform.sh                               ← Single transform: .claude/ → .opencode/ + .agents/ + .muse/
 │   ├── release.sh                                 ← Release automation
 │   └── release.md                                 ← Release checklist
 ├── .claude/
@@ -698,6 +745,8 @@ autoresearch/
 │   ├── skills/autoresearch/
 │   └── commands/                                  ← 14 command files (autoresearch_*.md)
 ├── .agents/                                       ← Codex port (via transform.sh)
+│   └── skills/autoresearch/
+├── .muse/                                         ← Muse port (via transform.sh)
 │   └── skills/autoresearch/
 ├── plugins/                                       ← Codex plugin metadata
 │   └── openai.yaml
@@ -731,6 +780,9 @@ A: Yes. Run `./scripts/install.sh --opencode --global` or manually copy `.openco
 
 **Q: Does this work with OpenAI Codex?**
 A: Yes. Run `./scripts/install.sh --codex --global` or copy `.agents/skills/autoresearch/` to `~/.codex/skills/autoresearch`. Invoke via `$autoresearch` mention syntax.
+
+**Q: Does this work with Muse?**
+A: Yes. Run `./scripts/install.sh --muse --global`, or `muse skills install autoresearch/.muse/skills/autoresearch --scope user`. Ask Muse to use the autoresearch skill with a subcommand keyword (`autoresearch plan`, `autoresearch debug`, etc.). Hook guardrails are Claude Code-only.
 
 **Q: How do I stop the loop?**
 A: `Ctrl+C` or add `Iterations: N` to your inline config. Claude commits before verifying, so your last successful state is always in git.

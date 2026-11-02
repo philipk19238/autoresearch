@@ -2,6 +2,7 @@
 name: autoresearch
 description: "Autonomous iteration loop: modify, verify, keep/discard against any metric"
 argument-hint: "[Goal: <text>] [Scope: <glob>] [Metric: <text>] [Verify: <cmd>] [Guard: <cmd>] [Iterations: N] [--evals]"
+disable-model-invocation: true
 ---
 
 EXECUTE IMMEDIATELY — do not deliberate before reading this protocol.
@@ -31,6 +32,15 @@ If Goal, Scope, Metric, or Verify missing → use request_user_input (single bat
   Q3 (Metric+Verify): "How to measure? Provide a shell command that outputs a number"
   Q4 (Guard): "Safety command that must always pass?" — options: test cmd, build cmd, skip
 If ALL provided inline → skip setup, proceed directly.
+
+## Conditional Performance Reference
+
+If Goal or Metric targets performance, latency, throughput, runtime, CPU,
+memory, allocations, binary size, power, energy, bandwidth, or compute cost, read
+`references/behavior-preserving-optimization.md` in the autoresearch skill directory
+before establishing the baseline. Apply its exploration/confirmation split: a
+metric-improving `keep` is an exploratory incumbent, not proof that behavior is
+preserved.
 
 ## Precondition Checks
 
@@ -90,7 +100,7 @@ Append row to TSV: iteration, timestamp, commit/-, metric, delta, guard status, 
 
 ### Fork-and-Flush Round
 Unless `--no-fork`: when the iteration count reaches a scheduled round (33% and 66% of N; 50% when N < 12;
-every 20 when unbounded), or the last 5 iterations produced no `keep`, run one fork-and-flush round from the
+every 20 when unbounded), or the last 5 iterations since the last `keep` or fork-and-flush round produced no `keep`, run one fork-and-flush round from the
 incumbent before the next iteration. Follow `references/fork-and-flush.md`. An early round replaces the next
 scheduled one. Of the K branches, `floor(K × R)` are guided (a stateless Advisor assigns each one experiment)
 and the rest are random (fresh context, no assignment).
@@ -111,10 +121,10 @@ If --evals present:
 - Compute interval: floor(max_iterations / 3), min 1. Fixed 10 if unbounded. Override: --evals-interval N.
 - Every {interval} iterations, pause and analyze current results TSV.
 - Print: `--- Eval Checkpoint (iterations {X}-{Y}) ---\nMetric: {start} → {end} ({delta}) | Kept: {n}/{total} | Trend: {up/flat/down}\n{one-line recommendation}\n---`
-- If plateau 3+ checkpoints and at least 2 fork-and-flush rounds have run since the last `keep` → recommend early stop. Otherwise the next fork round is the response to the plateau.
+- If plateau 3+ checkpoints → recommend early stop when `--no-fork` is set, or when at least min(2, rounds scheduled for this N) fork-and-flush rounds have run since the last `keep`. Otherwise the next fork round is the response to the plateau.
 - At loop end → full evals summary to evals-summary.md in output directory.
 
 ## Chain Handoff
 
 After completion, write handoff.json to output directory: version "2.1.0", source "loop", timestamp, status (COMPLETE|USER_INTERRUPT|BOUNDED|ERROR), results_tsv path, findings[], config{goal, scope, metric, direction, verify}.
-Invoke next target in --chain order. Propagate --evals flag.
+Invoke next target in --chain order via the `autoresearch` skill's Subcommand routing. Propagate --evals flag.
