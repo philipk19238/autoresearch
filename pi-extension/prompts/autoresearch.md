@@ -21,8 +21,8 @@ Extract from $ARGUMENTS:
 - `--evals-interval N` — checkpoint frequency override
 - `--chain <targets>` — comma-separated downstream commands
 - `--no-fork` — disable fork-and-flush rounds
-- `Forks: K` — branches per fork-and-flush round (default 4)
-- `Guided: R` — fraction of each round's branches that get an Advisor-assigned experiment (default 0.5); the rest are random
+- `Forks: K` — branches per fork-and-flush round (default 6)
+- `Guided: R` — fraction of each round's branches that get an Advisor-assigned experiment (default 1/3: 4 random + 2 guided at K = 6); the rest are random
 
 ## Setup (if required context missing)
 

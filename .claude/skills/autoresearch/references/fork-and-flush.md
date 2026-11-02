@@ -43,13 +43,16 @@ A round splits its K branches into two kinds:
 | **Random** | Nothing beyond the task. Works out what to try from the files. | Randomness: each fresh agent can land in a basin nobody planned for (fork-and-flush). |
 | **Guided** | One concrete experiment, chosen by a stateless Advisor from the results so far. | Coverage: no two branches spend their budget on the same idea, and none repeats a logged failure (stateless agents). |
 
-`Guided: R` sets the guided fraction. Guided branches = `floor(K × R)`; the rest are random. Default R = 0.5.
+`Guided: R` sets the guided fraction. Guided branches = `floor(K × R)`; the rest are random. Default K = 6 and R = 1/3: 4 random + 2 guided. Random
+outnumbers guided on purpose: randomness is what gets a loop out of a basin, and the guided branches add
+coverage on top.
 
-| K | R = 0.5 | R = 0 | R = 1 |
+| K | R = 1/3 (default) | R = 0 | R = 1 |
 |---|---|---|---|
-| 4 | 2 random + 2 guided | 4 random (fork-and-flush as published) | 4 guided |
+| 6 | 4 random + 2 guided | 6 random | 6 guided |
+| 4 | 3 random + 1 guided | 4 random (fork-and-flush as published) | 4 guided |
 | 3 | 2 random + 1 guided | 3 random | 3 guided |
-| 2 | 1 random + 1 guided | 2 random | 2 guided |
+| 2 | 2 random | 2 random | 2 guided |
 
 Keep at least one random branch unless you have a reason not to. Random branches are the only source of ideas
 the Advisor would not think of.
@@ -75,7 +78,7 @@ the next scheduled one, so the total number of rounds does not grow.
 
 1. **Protect the incumbent.** The incumbent is the commit with the best metric so far. Tag it
    (`git tag -f autoresearch/incumbent <sha>`). No branch may revert or overwrite it.
-2. **Fork K branches.** Default K = 4, split into random and guided branches by `Guided: R`. Use K = 2 when one Verify run takes more than about 5 minutes, or when
+2. **Fork K branches.** Default K = 6, split into random and guided branches by `Guided: R`. Use K = 2 when one Verify run takes more than about 5 minutes, or when
    it needs a single shared resource such as one local stack or one test database. In that case run the
    branches one after another.
    - Each branch is a fresh-context sub-agent in its own git worktree, starting at the incumbent. In Claude
@@ -142,7 +145,7 @@ and treat `FORK` as `PLATEAU`.
 
 ## Cost
 
-A round costs about K × 6% of the budget. The Advisor adds one short call per round; in the stateless-agents
+A round costs about K × 6% of the budget, so about 36% at the default K = 6. The Advisor adds one short call per round; in the stateless-agents
 paper the Advisor used under 0.6% of all tokens. The paper spends roughly 72% of the budget on branches (an opening
 round plus two scheduled rounds) and still beats a single run at the same total cost. When Verify is expensive,
 use K = 2 rather than skipping rounds: flushing alone recovers about half of the gain.

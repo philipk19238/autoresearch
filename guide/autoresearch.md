@@ -28,8 +28,8 @@ Iterations: <N | unlimited — default: 25>
 | `--evals-interval N` | Run evals every N iterations mid-loop |
 | `--chain <targets>` | Hand off to next command(s) after loop |
 | `--no-fork` | Disable fork-and-flush rounds |
-| `Forks: K` | Branches per fork-and-flush round (default 4) |
-| `Guided: R` | Fraction of fork branches given an Advisor-assigned experiment (default 0.5) |
+| `Forks: K` | Branches per fork-and-flush round (default 6) |
+| `Guided: R` | Fraction of fork branches given an Advisor-assigned experiment (default 1/3: 4 random + 2 guided) |
 
 ### Config Fields
 
@@ -209,7 +209,7 @@ steering it back to the same approach. Fork-and-flush ([Cai et al., arXiv:2610.0
 gets it out:
 
 1. Take the best commit so far (the incumbent) and protect it.
-2. Start K fresh agents from it (default 4) that see only the files and the results TSV, not the leader's
+2. Start K fresh agents from it (default 6) that see only the files and the results TSV, not the leader's
    reasoning.
 3. Run each for a small budget (about 6% of the total), keep the best, and let that branch lead.
 
@@ -240,8 +240,8 @@ Each round mixes two kinds of branch:
   `git log`, then hands out experiments that differ from each other and from every logged failure, so no budget
   is spent twice on the same idea.
 
-`Guided: R` sets the split: `floor(K × R)` guided, the rest random. The default 0.5 gives 2 + 2 at K = 4 and
-1 + 1 at K = 2. `Guided: 0` is fork-and-flush as published. The summary reports wins by kind, so you can move R
+`Guided: R` sets the split: `floor(K × R)` guided, the rest random. The default 1/3 gives 4 random + 2 guided at K = 6, 3 + 1 at
+K = 4 and 2 + 0 at K = 2: random outnumbers guided because randomness is what escapes a basin. `Guided: 0` is fork-and-flush as published. The summary reports wins by kind, so you can move R
 toward whichever kind keeps winning.
 
 ---

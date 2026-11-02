@@ -66,15 +66,15 @@ The commands are user-typed only, so the model loads them from here instead of i
 | `--classic` | Bare `/autoresearch` | Force Classic metric-loop mode |
 | `--auto` | Bare `/autoresearch` | Force Orchestrator mode |
 | `--no-fork` | Metric loops | Disable fork-and-flush rounds |
-| `Forks: K` | Metric loops | Branches per fork-and-flush round (default 4; 2 when Verify is slow or uses a shared resource) |
-| `Guided: R` | Metric loops | Fraction of fork branches given an Advisor-assigned experiment (default 0.5; 0 = all random) |
+| `Forks: K` | Metric loops | Branches per fork-and-flush round (default 6; 2 when Verify is slow or uses a shared resource) |
+| `Guided: R` | Metric loops | Fraction of fork branches given an Advisor-assigned experiment (default 1/3: 4 random + 2 guided at K = 6; 0 = all random) |
 
 ## Getting Unstuck: Fork-and-Flush
 
 Metric loops run fork-and-flush rounds on a fixed schedule: at 33% and 66% of the budget, plus early when 5
 iterations pass with no `keep`. A round forks K fresh-context branches from the best commit so far, runs each
 for a small budget, and keeps the winner. A fresh context means the files and results log only, with none of
-the leader's reasoning. Half the branches (by default) are random and pick their own ideas; the other half are
+the leader's reasoning. By default 4 of the 6 branches are random and pick their own ideas; the other 2 are
 guided, each given one distinct experiment by a stateless Advisor that reads the results log. Protocol:
 `references/fork-and-flush.md` (arXiv:2610.07447, arXiv:2610.07625).
 
